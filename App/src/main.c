@@ -7,6 +7,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/services/nus.h>
+#include <zephyr/bluetooth/conn.h>
 
 #define DEVICE_NAME		CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN		(sizeof(DEVICE_NAME) - 1)
@@ -40,9 +41,59 @@ struct bt_nus_cb nus_listener = {
 	.received = received,
 };
 
+struct bt_conn *default_conn = NULL;
+
+static struct k_work adv_work;
+
+static void adv_work_handler(struct k_work *work)
+{
+    int err = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad), NULL, 0);
+    if (err) {
+        printk("Advertising failed to start (err %d)\n", err);
+    } else {
+        printk("Advertising successfully restarted\n");
+    }
+}
+
+static void connected(struct bt_conn *conn, uint8_t err) {
+	if (err) {
+		printk("Error connecting (0x%02x)\n", err);
+		return;
+	}
+	char addr [BT_ADDR_LE_STR_LEN];
+	default_conn = bt_conn_ref(conn);
+	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
+	printk("Connected to %s\n", addr);
+}
+
+static void disconnected(struct bt_conn *conn, uint8_t reason) {
+	if (default_conn) {
+		bt_conn_unref(default_conn);
+		default_conn = NULL;
+	}
+	printk("Disconnected - reason (0x%02x)\n", reason);
+
+	k_work_submit(&adv_work);
+}
+
+static struct bt_conn_cb conn_callbacks = {
+	.connected = connected,
+    .disconnected = disconnected,
+	.recycled = NULL,
+};
+
+
 int main(void)
 {
 	int err;
+
+	k_work_init(&adv_work, adv_work_handler);
+
+	err = bt_conn_cb_register(&conn_callbacks);
+	if (err) {
+		printk("Failed to register Connection callbacks: %d\n", err);
+		return err;
+	}
 
 	printk("Sample - Bluetooth Peripheral NUS\n");
 
@@ -71,7 +122,10 @@ int main(void)
 
 		k_sleep(K_SECONDS(3));
 
-		err = bt_nus_send(NULL, hello_world, strlen(hello_world));
+		if (!default_conn)
+			continue;
+
+		err = bt_nus_send(default_conn, hello_world, strlen(hello_world));
 		printk("Data send - Result: %d\n", err);
 
 		if (err < 0 && (err != -EAGAIN) && (err != -ENOTCONN)) {
