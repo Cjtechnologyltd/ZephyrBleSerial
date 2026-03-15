@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "group":"build",
+            "command": "source .venv/bin/activate && west build -p always -b nucleo_wb55rg App"
+        },
+        {
+            "label": "flash",
+            "type": "shell",
+            "group":"build",
+            "dependsOn": ["build"],
+            "command": "source .venv/bin/activate && west flash --erase"
+        },
+    ]
+}
