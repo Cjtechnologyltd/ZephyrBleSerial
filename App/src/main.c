@@ -43,18 +43,6 @@ struct bt_nus_cb nus_listener = {
 
 struct bt_conn *default_conn = NULL;
 
-static struct k_work adv_work;
-
-static void adv_work_handler(struct k_work *work)
-{
-    int err = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad), NULL, 0);
-    if (err) {
-        printk("Advertising failed to start (err %d)\n", err);
-    } else {
-        printk("Advertising successfully restarted\n");
-    }
-}
-
 static void connected(struct bt_conn *conn, uint8_t err) {
 	if (err) {
 		printk("Error connecting (0x%02x)\n", err);
@@ -72,22 +60,26 @@ static void disconnected(struct bt_conn *conn, uint8_t reason) {
 		default_conn = NULL;
 	}
 	printk("Disconnected - reason (0x%02x)\n", reason);
+}
 
-	k_work_submit(&adv_work);
+static void recycled(void) {
+	int err = bt_le_adv_start(BT_LE_ADV_CONN_FAST_1, ad, ARRAY_SIZE(ad), NULL, 0);
+    if (err)
+        printk("Advertising failed to start (err %d)\n", err);
+    else
+        printk("Advertising successfully restarted\n");
 }
 
 static struct bt_conn_cb conn_callbacks = {
 	.connected = connected,
     .disconnected = disconnected,
-	.recycled = NULL,
+	.recycled = recycled,
 };
 
 
 int main(void)
 {
 	int err;
-
-	k_work_init(&adv_work, adv_work_handler);
 
 	err = bt_conn_cb_register(&conn_callbacks);
 	if (err) {
