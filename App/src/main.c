@@ -1,8 +1,10 @@
 /*
- * Copyright (c) 2024 Croxel, Inc.
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+    ZephyrBleSerial
+    Advertises BLU NUS service
+     - Wait for connection
+     - Passthrough BLE to console
+     - Readvertise on disconnect
+*/
 
 #include <zephyr/kernel.h>
 #include <zephyr/bluetooth/bluetooth.h>
@@ -11,7 +13,7 @@
 #include <zephyr/drivers/uart.h>
 #include <zephyr/drivers/gpio.h>
 
-#define DEVICE_NAME		CONFIG_BT_DEVICE_NAME
+#define DEVICE_NAME		"Z-UART"
 #define DEVICE_NAME_LEN		(sizeof(DEVICE_NAME) - 1)
 #define BLE_READ_PIPE_STACK_SIZE 500
 #define BLE_WRITE_PIPE_STACK_SIZE 1024
