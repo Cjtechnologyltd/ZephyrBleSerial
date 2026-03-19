@@ -217,6 +217,7 @@ static void blue_light_thread(void* a, void* b, void* c) {
         }
         else {
             gpio_pin_set_dt(&led, 1);
+            k_sleep(K_MSEC(500));
         }
     }
 }
@@ -304,19 +305,7 @@ int main(void)
     printk("Initialization complete\n");
 
     while (true) {
-        const char *hello_world = "Hello World!\n";
-
-        k_sleep(K_SECONDS(3));
-
-        if (!default_conn)
-            continue;
-
-        err = bt_nus_send(default_conn, hello_world, strlen(hello_world));
-        printk("Data send - Result: %d\n", err);
-
-        if (err < 0 && (err != -EAGAIN) && (err != -ENOTCONN)) {
-            return err;
-        }
+        k_sleep(K_MSEC(500));
     }
 
     return 0;
