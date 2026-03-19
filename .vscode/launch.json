@@ -1,0 +1,29 @@
+{
+"version": "0.2.0",
+"configurations": 
+    [
+        {
+            "name": "Zephyr Debugging",
+            "executable": "${workspaceFolder}/zephyr/build/zephyr/zephyr.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "external",
+            "gdbPath": "/home/claire/zephyr-sdk-0.17.4/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
+            "gdbTarget": "localhost:3333",
+            "device": "nucleo_wb55rg",
+            "preLaunchTask": "West Debugserver",
+            "postDebugTask": "Stop Debugserver"
+        },
+        {
+            "name": "Attach Zephyr Debugging",
+            "executable": "${workspaceFolder}/build/zephyr/zephyr.elf",
+            "request": "attach",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "external",
+            "gdbPath": "/home/claire/zephyr-sdk-0.17.4/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
+            "gdbTarget": "localhost:3333",
+        },
+    ]
+}
